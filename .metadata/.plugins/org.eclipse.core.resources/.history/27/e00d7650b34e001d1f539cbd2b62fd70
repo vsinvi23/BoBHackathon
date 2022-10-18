@@ -1,0 +1,133 @@
+<%@ page language="java" contentType="text/html; charset=ISO-8859-1" pageEncoding="ISO-8859-1"%>
+<%
+String contextPath = request.getContextPath();
+
+String exponent = "10001";
+String modulus  = "BDE8C030DA1B273BBB3598930188E4CBF580C6AFAC04D4BDAF32481DA317C633E84CEAD45281CE709AF31329B9FB0B94416320F3975A25051E28BF09A535E6FD945C1E89261F60317291FF8E19710336239B78CCB0899C7ED852A41EDE93B399147FAA142986BC3E5DC6C524A7A83B8ED525B603E3184CBA1799E0E42E7BDE4B6F732A45E00A93AD2010A4E75C2C8AEAC436ABC348E8556A3FC8ABB916047BD499E07F1D209FF053DAB5B4D58D6B6FB265E6CF82F9BB4E7C2C6E9243E1C46F748BCD1F306F7F2FE97CD9A6F42FD438902DB478C8396724665587DA10A796085154B1BEFD8E05AD37328B7F015E50FD98D8DEA6C2281770C6B4CED7B9DBADB939";
+
+
+%>
+   
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+  <title>Welcome To DS3 : Login </title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <!--css-->
+  <link rel="stylesheet" href="<%= contextPath%>/BootStrap/css/bootstrap.css">
+  <!--BootStrap js and Jquery-->
+  <script src="<%= contextPath%>/jsp/BootStrap/js/bootstrap.js"></script>
+  <script src="<%= contextPath%>/jsp/BootStrap/js/jquery.min.js"></script>
+  
+  <!-- JavaScript code -->
+  <script type="text/javascript">
+  
+  var Exponent = "<%= exponent%>";
+  var Modulus  = "<%= modulus%>"; 
+  
+  function getUserIDHexString(useridStr)
+  {
+      var useridByte = getByteArray(useridStr);
+      userIDHexString = "";
+      for (var i = 0 ; i < useridByte.length; i++){
+          var num = "";
+          if ( useridByte[i] <= 0xF) num = "0"+useridByte[i].toString(16);
+          else num = useridByte[i].toString(16);
+          userIDHexString = userIDHexString + num;
+      }
+      return userIDHexString + "00";
+  }
+  
+  function doUserAuthenticate()
+  {
+	  	var UserIdValue = document.getElementById("usernameTextbox").value;
+		var PinValue    = document.getElementById("passwordTextbox").value;
+		var OtipValue   = document.getElementById("otipTextBox").value;
+		var passwordHash= "MD5";
+
+		// Check textFields
+		if ( UserIdValue.length == 0)
+		{
+			alert('Enter UserName');
+			event.preventDefault();
+		}
+		if ( PinValue.length == 0 )
+		{
+			alert( 'Enter Password');
+			event.preventDefault();
+		}
+		if ( OtipValue.length == 0)
+		{
+			OtipValue = PinValue;
+		}
+		
+		//MD5 with OTIP
+		//var rsaBlock = encryptVerifyRSABlock( UserIdValue, PinValue, PinValue, '37e514ed8443c92bfac0b0111c6d4c3a');
+		
+		//MD5 without OTIP
+		//var rsaBlock = encryptVerifyStaticRSABlock( UserIdValue, PinValue, '37e514ed8443c92bfac0b0111c6d4c3a');
+		
+		//SHA without OTIP 16Byte
+		var rsaBlock = __encryptVerifyStaticRSABlock256(Exponent, Modulus, UserIdValue, PinValue, '37e514ed8443c92bfac0b0111c6d4c3a', 1);
+		
+		//SHA With OTIP 32Byte
+		//var rsaBlock = __encryptVerifyRSABlock256(Exponent, Modulus, UserIdValue, PinValue, PinValue, '37e514ed8443c92bfac0b0111c6d4c3a');
+
+		console.log(rsaBlock);
+
+		var userIdHexValue = getUserIDHexString(UserIdValue);
+
+		document.getElementById("EncryptedRSABlock").value = rsaBlock;
+		document.getElementById("UID").value = userIdHexValue;
+		document.getElementById("HashAlgo").value = passwordHash;
+		return;
+	}
+  </script>
+  <!--DS3 Js-->
+  
+  <script src="<%= contextPath%>/jsp/JavaScript/DSSSCryptography256.js"></script>
+  <script src="<%= contextPath%>/jsp/JavaScript/DSSSCryptography.js"></script>
+  <script src="<%= contextPath%>/jsp/JavaScript/lib/Util.js"></script>
+  <script src="<%= contextPath%>/jsp/JavaScript/lib/des.js"></script>
+  <script src="<%= contextPath%>/jsp/JavaScript/lib/jsbn.js"></script>
+  <script src="<%= contextPath%>/jsp/JavaScript/lib/md5.js"></script>
+  <script src="<%= contextPath%>/jsp/JavaScript/lib/rsa.js"></script>
+  <script src="<%= contextPath%>/jsp/JavaScript/lib/sha1.js"></script>
+  <script src="<%= contextPath%>/jsp/JavaScript/lib/sha256.js"></script>
+  
+</head>
+<body>
+  
+<div class="container">
+    <form action="login?action=authenticateUser" method="post">
+        <div class="row" style="margin: 10px 0px 20 px 0px;">
+        		<div class="col-sm-12" style="text-align: center;">
+                	<h1>User Authentication</h1>
+                </div>
+                <div class="col-sm-4">
+                <input type="text" id="usernameTextbox" name="usernameTextbox" placeholder="Enter UserName" style="width:-webkit-fill-available" />
+                </div>
+                <div class="col-sm-4">
+                    <input type="password" id="passwordTextbox" name="passwordTextbox" placeholder="Enter Password" style="width:-webkit-fill-available"/>
+                </div>
+                <div class="col-sm-4">
+                    <input type="text" id="otipTextBox" name="otipTextBox" placeholder="Enter OTIP" style="width:-webkit-fill-available" />
+                </div>
+                <input type="hidden" id="EncryptedRSABlock" name="EncryptedRSABlock" value="" />
+                <input type="hidden" id="UID" name="UID" value="" />
+                <input type="hidden" id="HashAlgo" name="HashAlgo" value="" />
+                <input type="hidden" id="action" name="action" value="authenticateUser" />
+        </div>
+        <br/>
+        <div class="row">
+                <div class="col-sm-12">
+                    <input class="btn btn-primary" type="submit" id="authenticateButton" value="Authenticate" style="width:-webkit-fill-available"
+                    	onclick="doUserAuthenticate()">
+                </div>
+        </div>
+    </form>
+</div>
+
+</body>
+</html>

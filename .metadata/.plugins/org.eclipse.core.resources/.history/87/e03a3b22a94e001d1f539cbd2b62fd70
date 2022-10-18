@@ -1,0 +1,301 @@
+<%@ page import="com.client.ClientAPI, com.client.*, java.util.*, java.lang.*"  language="java" contentType="text/html; charset=ISO-8859-1"
+    pageEncoding="ISO-8859-1"%>
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1">
+<title>DSS Cryptography</title>
+</head>
+
+<%
+boolean process = false;
+
+String user_ID = "";
+int domain = 0;
+String resultSetRSAStatic="";
+String resultSetRSAStatic_noVerify="";
+String resultVerifyRSAStatic="";
+String resultChangeRSAStatic="";
+String resultChangeRSAStatic_noVerify="";
+String resultTranslateRSAStatic="";
+String resultVerify2Factor="";
+
+if(process){
+	ClientAPI api = ClientAPI.getInstance(
+			"E:/apache-tomcat-temp/apache-tomcat-8.5.70-windows-x64/apache-tomcat-8.5.70/webapps/ROOT/keystore/client66.keystore", "123456",
+			"10.164.88.66", false);
+	byte[] sessionHandle = new byte[16];
+
+	user_ID = request.getParameter( "userID" );
+	domain = Integer.parseInt(request.getParameter("domainID"));
+	
+	String rndStr = request.getParameter("random1");
+	String rndStr2 = request.getParameter("random2");
+	
+	byte[] random = Converter.hexStringToBytes(rndStr);
+	byte[] random2 = Converter.hexStringToBytes(rndStr2);
+	
+	System.out.println("random String :"+rndStr);
+	String[] apiName = request.getParameterValues("api[]");
+	if (apiName != null) 
+	{
+	   for (int i = 0; i < apiName.length; i++) 
+	   {
+	       if (apiName[i].equalsIgnoreCase("setRSAStatic")) {
+	    	   	System.out.println("RSA Block setRSAStatic :"+request.getParameter("rsaBlockSetRSAStatic"));
+	    	   	String rsaBlockSetRSAStatic =  request.getParameter("rsaBlockSetRSAStatic");
+	    	   	byte[] rsaEncBlock = Converter.hexStringToBytes(rsaBlockSetRSAStatic);
+	    		int rc1 = api.setRSAStatic(sessionHandle, user_ID, domain, random, rsaEncBlock, rsaEncBlock.length);
+	    		System.out.println("Return code: "+ rc1);
+		   	if(rc1==0)
+		       resultSetRSAStatic="Success";
+		   	else
+		   		resultSetRSAStatic="Failure: Check Logs";
+			}
+	       
+		if (apiName[i].equalsIgnoreCase("setRSAStatic_noVerify"))
+		{
+		   	System.out.println("RSA Block setRSAStatic_noVerify:"+request.getParameter("rsaBlockSetRSAStatic_noVerify"));
+		   	String rsaBlockSetRSAStatic_noverify =  request.getParameter("rsaBlockSetRSAStatic_noVerify");
+    	   	byte[] rsaEncBlock_noVerify = Converter.hexStringToBytes(rsaBlockSetRSAStatic_noverify);
+		   	int rc2 = api.setRSAStatic_noVerify(sessionHandle, user_ID, domain, random, rsaEncBlock_noVerify, rsaEncBlock_noVerify.length);
+		   	
+		   	System.out.println("Return code: "+ rc2);
+		   	if(rc2==0)
+		       resultSetRSAStatic_noVerify="Success";  
+		   	else
+		   		resultSetRSAStatic_noVerify="Failure: Check Logs";
+		}
+		
+		if (apiName[i].equalsIgnoreCase("verifyRSAStatic"))
+		{
+		   System.out.println("RSA Block verifyRSAStatic:"+request.getParameter("rsaBlockVerifyRSAStatic"));
+		   String rsaBlockVerifyRSAStatic =  request.getParameter("rsaBlockVerifyRSAStatic");
+		   System.out.println(" rsaBlockSetRSAStatic_noverify :"+rsaBlockVerifyRSAStatic);
+   	   	   byte[] verifyRsaEncBlock = Converter.hexStringToBytes(rsaBlockVerifyRSAStatic);
+		   int rc = api.verifyRSAStatic(sessionHandle, user_ID, domain, random, verifyRsaEncBlock, verifyRsaEncBlock.length);
+		   System.out.println("Return code: "+ rc);
+		   if(rc==0)
+		       resultVerifyRSAStatic ="Success";  
+		   else
+			   resultVerifyRSAStatic ="Failure: Check Logs";
+		}
+		
+		if (apiName[i].equalsIgnoreCase("verify2Factor"))
+		{
+		   System.out.println("RSA Block verify2factor:"+request.getParameter("rsaBlockVerify2Factor"));
+		   String rsaBlockVerify2Factor =  request.getParameter("rsaBlockVerify2Factor");
+		   System.out.println("rsaBlockVerify2Factor :"+rsaBlockVerify2Factor);
+   	   	   byte[] verify2RsaEncBlock = Converter.hexStringToBytes(rsaBlockVerify2Factor);
+		   int rc = api.verify2Factor(sessionHandle, user_ID, domain, random, verify2RsaEncBlock, verify2RsaEncBlock.length);
+		   System.out.println("Return code: "+ rc);
+		   if(rc==0)
+			   resultVerify2Factor ="Success";  
+		   else
+			   resultVerify2Factor ="Failure: Check Logs";
+		}
+		
+		if (apiName[i].equalsIgnoreCase("changeRSAStatic"))
+		{
+		   System.out.println("RSA Block changeRSAStatic:"+request.getParameter("rsaBlockChangeRSAStatic"));
+		   String rsaBlockChangeRSAStatic =  request.getParameter("rsaBlockChangeRSAStatic");
+   	   	   byte[] changeRsaEncBlock = Converter.hexStringToBytes(rsaBlockChangeRSAStatic);
+		   int rc = api.changeRSAStatic(sessionHandle, user_ID, domain, random, random2, changeRsaEncBlock, changeRsaEncBlock.length);
+		   System.out.println("Return code: "+ rc);
+		   if(rc==0)
+			   resultChangeRSAStatic ="Success";  
+		   else
+			   resultChangeRSAStatic ="Failure: Check Logs";
+		}
+		
+		if (apiName[i].equalsIgnoreCase("changeRSAStatic_noVerify"))
+		{
+		   System.out.println("RSA Block changeRSAStatic_noVerify:"+request.getParameter("rsaBlockChangeRSAStatic_noVerify"));
+		   String rsaBlockChangeRSAStatic_noVerify =  request.getParameter("rsaBlockChangeRSAStatic_noVerify");
+   	   	   byte[] changeRsaEncBlock_noVerify = Converter.hexStringToBytes(rsaBlockChangeRSAStatic_noVerify);
+		   int rc = api.changeRSAStatic_noVerify(sessionHandle, user_ID, domain, random, random2, changeRsaEncBlock_noVerify, changeRsaEncBlock_noVerify.length);
+		   System.out.println("Return code: "+ rc);
+		   if(rc==0)
+		       resultChangeRSAStatic_noVerify ="Success";  
+		   else
+			   resultChangeRSAStatic_noVerify ="Failure: Check Logs";
+		}
+		
+		if (apiName[i].equalsIgnoreCase("translateRSAStatic"))
+		{
+		   System.out.println("RSA Block translateRSAStatic:"+request.getParameter("rsaBlockTranslateRSAStatic"));
+		   String rsaBlockTranslateRSAStatic =  request.getParameter("rsaBlockTranslateRSAStatic");
+   	   	   byte[] translateRsaEncBlock = Converter.hexStringToBytes(rsaBlockTranslateRSAStatic);
+   	   	   RSAStaticTranslation staticISO = api.translateRSAStatic(sessionHandle, user_ID, domain, random, translateRsaEncBlock, translateRsaEncBlock.length);
+   	   	   int rc = staticISO.getReturnCode();
+   	   	   System.out.println("Return code: "+ rc);
+		   if(rc==0)
+			   rsaBlockTranslateRSAStatic ="Success"; 
+		   else
+			   rsaBlockTranslateRSAStatic ="Failure: Check Logs";
+		}
+	   }
+	}
+	
+}
+
+   
+%>
+
+
+<body>
+
+	<form name="registration" id="registration_form_id" action=""
+		method="post" onsubmit="return doSubmit(this)">
+		<table border=0 width="50%">
+			<tr>
+				<td colspan="3"><label>API List : </label></td>
+			</tr>
+			<tr>
+				<td colspan="3">&nbsp;</td>
+			</tr>
+			<tr>
+				<td>&nbsp;</td>
+				<td><b>API Name</b></td>
+				<td><b>Result</b></td>
+			</tr>
+			<tr>
+				<td><input type="checkbox" name="api[]" value="setRSAStatic">
+				</td>
+				<td>setRSAStatic</td>
+				<td><%= resultSetRSAStatic%></td>
+			</tr>
+			<tr>
+				<td><input type="checkbox" name="api[]"
+					value="setRSAStatic_noVerify"></td>
+				<td>setRSAStatic_noVerify</td>
+				<td><%= resultSetRSAStatic_noVerify%></td>
+			</tr>
+			<tr>
+				<td><input type="checkbox" name="api[]" value="verifyRSAStatic">
+				</td>
+				<td>verifyRSAStatic</td>
+				<td><%= resultVerifyRSAStatic%></td>
+				<td></td>
+			</tr>
+			
+			
+			<tr>
+				<td><input type="checkbox" name="api[]"
+					value="verify2Factor"></td>
+				<td>verify2Factor</td>
+				<td><%= resultVerify2Factor %></td>
+				<td></td>
+			</tr>
+			
+			<tr>
+				<td><input type="checkbox" name="api[]"
+					value="changeRSAStatic"></td>
+				<td>changeRSAStatic</td>
+				<td><%= resultChangeRSAStatic%></td>
+				<td></td>
+			</tr>
+			
+			<tr>
+				<td><input type="checkbox" name="api[]"
+					value="changeRSAStatic_noVerify"></td>
+				<td>changeRSAStatic_noVerify</td>
+				<td><%= resultChangeRSAStatic_noVerify %></td>
+				<td></td>
+			</tr>
+
+
+			<tr>
+				<td><input type="checkbox" name="api[]"
+					value="translateRSAStatic"></td>
+				<td>translateRSAStatic</td>
+				<td><%= resultTranslateRSAStatic %></td>
+				<td></td>
+			</tr>
+
+			<tr>
+				<td colspan="3">&nbsp;</td>
+			</tr>
+
+			<tr>
+				<td colspan="3"><label for="domainID">Domain ID: </label><input type="text" name="domainID" placeholder="Domain ID" style="margin-left: 24px"/></td>
+			</tr>
+
+			<tr>
+				<td colspan="3"><label for="userID">UserName: </label><input type="text" name="userID" placeholder="UserName" style="margin-left: 28px"/></td>
+			</tr>
+
+			<tr>
+				<td colspan="3"><label for="password">Password: </label><input type="text" name="password" placeholder="Current Password" style="margin-left: 35px"/></td>
+			</tr>
+
+			<tr>
+				<td colspan="3"><label for="OTIP">OTIP:    </label><input type="text" name="OTIP" placeholder="OTIP" style="margin-left: 60px"/></td>
+			</tr>
+
+			<tr>
+				<td colspan="3"><label for="newPassword">New Password: </label><input type="text" name="newPassword" placeholder="New Password" /></td>
+			</tr>
+
+			<tr>
+				<td colspan="3">&nbsp;</td>
+			</tr>
+
+			<tr>
+				<td colspan="3">Select Random Length. Default: 16</td>
+			</tr>
+
+			<tr>
+				<td><input type="radio" id="randomLength16" name="randomLength" value="16" checked></td>
+				<td>Ramdom 16Byte</td>
+			</tr>
+			
+			<tr>
+				<td><input type="radio" id="randomLength32" name="randomLength" value="32"></td>
+				<td>Ramdom 32Byte</td>
+			</tr>
+
+			<tr>
+				<td colspan="3">&nbsp;</td>
+			</tr>
+
+			<tr>
+				<td colspan="3">Select Hash Algorithm</td>
+			</tr>
+
+			<tr>
+				<td><input type="radio" id="HashAlgoMD5" name="HashAlgo" value="MD5" checked></td>
+				<td>MD5</td>
+			</tr>
+			
+			<tr>
+				<td><input type="radio" id="HashAlgoSHAFold" name="HashAlgo" value="SHA256FOLD"></td>
+				<td>SHA256FOLD</td>
+			</tr>
+
+			<tr>
+				<td><input type="radio" id="HashAlgoSHA" name="HashAlgo" value="SHA256"></td>
+				<td>SHA256</td>
+			</tr>
+			
+			<tr>
+				<td colspan="3">&nbsp;</td>
+			</tr>
+			<tr>
+				<td colspan="3"><button type="submit">Submit</button></td>
+			</tr>
+		</table>
+		<input type="hidden" name="process" id="process"> 
+		<input type="hidden" name="rsaBlockSetRSAStatic" id="rsaBlockSetRSAStatic"> 
+		<input type="hidden" name="rsaBlockSetRSAStatic_noVerify"	id="rsaBlockSetRSAStatic_noVerify">
+		<input type="hidden" name="rsaBlockVerifyRSAStatic" id="rsaBlockVerifyRSAStatic">
+		<input type="hidden" name="rsaBlockVerify2Factor" id="rsaBlockVerify2Factor">
+		<input type="hidden" name="rsaBlockChangeRSAStatic" id="rsaBlockChangeRSAStatic">
+		<input type="hidden" name="rsaBlockChangeRSAStatic_noVerify" id="rsaBlockChangeRSAStatic_noVerify">
+		<input type="hidden" name="rsaBlockTranslateRSAStatic" id="rsaBlockTranslateRSAStatic">
+		<input type="hidden" name="random1" id="random1">
+		<input type="hidden" name="random2" id="random2">
+		
+	</form>
+</body>
+</html>
